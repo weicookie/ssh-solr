@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<schema name="sys_user" version="1.6">
+
+    <!--field 域的类型-->
+    <fieldType name="string" class="solr.StrField" sortMissingLast="true" omitNorms="true"/>
+    <fieldType name="boolean" class="solr.BoolField" sortMissingLast="true" omitNorms="true"/>
+
+    <fieldType name="int" class="solr.TrieIntField" precisionStep="0" omitNorms="true" positionIncrementGap="0"/>
+    <fieldType name="long" class="solr.TrieLongField" precisionStep="0" omitNorms="true" positionIncrementGap="0"/>
+    <fieldType name="float" class="solr.TrieFloatField" precisionStep="0" omitNorms="true" positionIncrementGap="0"/>
+    <fieldType name="double" class="solr.TrieDoubleField" precisionStep="0" omitNorms="true" positionIncrementGap="0"/>
+    <fieldType name="date" class="solr.TrieDateField" precisionStep="0" omitNorms="true" positionIncrementGap="0"/>
+
+    <fieldType name="tint" class="solr.TrieIntField" precisionStep="8" omitNorms="true" positionIncrementGap="0"/>
+    <fieldType name="tlong" class="solr.TrieLongField" precisionStep="8" omitNorms="true" positionIncrementGap="0"/>
+    <fieldType name="tfloat" class="solr.TrieFloatField" precisionStep="8" omitNorms="true" positionIncrementGap="0"/>
+    <fieldType name="tdouble" class="solr.TrieDoubleField" precisionStep="8" omitNorms="true" positionIncrementGap="0"/>
+    <fieldType name="tdate" class="solr.TrieDateField" precisionStep="6" omitNorms="true" positionIncrementGap="0"/>
+
+    <fieldType name="text" class="solr.TextField" positionIncrementGap="100">
+        <analyzer type="index">
+            <tokenizer class="solr.StandardTokenizerFactory"/>
+            <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" />
+            <filter class="solr.LowerCaseFilterFactory"/>
+        </analyzer>
+        <analyzer type="query">
+            <tokenizer class="solr.StandardTokenizerFactory"/>
+            <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" />
+            <filter class="solr.SynonymGraphFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
+            <filter class="solr.LowerCaseFilterFactory"/>
+        </analyzer>
+    </fieldType>
+
+    <!--
+        name:域的名称
+    　　class:指定solr的类型
+    　　analyzer:分词器的配置
+    　　　　type: index(索引分词器)，query(查询分词器)
+    　　　　tokenizer:配置分词器
+    　　　　filter:过滤器
+    -->
+    <!--<fieldType name="text" class="solr.TextField" positionIncrementGap="100" autoGeneratePhraseQueries="false">
+        <analyzer>
+            <tokenizer class="org.bear.searcher.analyzer.IKTokenizerFactory"/>
+            <filter class="solr.LowerCaseFilterFactory"/>
+            <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
+        </analyzer>
+    </fieldType>
+
+    <fieldType name="ngram_text" class="solr.TextField" positionIncrementGap="100" autoGeneratePhraseQueries="false">
+        <analyzer type="query">
+            <tokenizer class="org.bear.searcher.analyzer.IKTokenizerFactory"/>
+            <filter class="solr.LowerCaseFilterFactory"/>
+            <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
+        </analyzer>
+        <analyzer type="index">
+            <tokenizer class="org.bear.searcher.analyzer.IKTokenizerFactory"/>
+            <filter class="org.bear.searcher.analyzer.TokenJoinTokenFilterFactory" maxSize="3"/>
+            <filter class="solr.LowerCaseFilterFactory"/>
+            <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
+        </analyzer>
+    </fieldType>-->
+
+    <fieldtype name="ignored" class="solr.StrField" stored="false" indexed="false"/>
+	
+	<!-- 保留字段，不能删除，否则报错--> 
+	<field name="_version_" type="long" indexed="true" stored="true"/>
+    <!--不能删除，否则报undefined field text异常-->
+    <field name="text" type="text" indexed="true" stored="false" multiValued="true"/>
+
+	<!-- 
+		name:域名
+	　　type:域的类型，必须匹配类型，不然会报错
+	　　indexed:是否要作索引
+	　　stored:是否要存储
+	　　required:是否必填，一般只有id才会设置
+	　　multiValued:是否有多个值，如果设置为多值，里面的值就采用数组的方式来存储，比如商品图片地址(大图，中图，小图等)
+	-->
+    <field name="searchField" type="string" indexed="true" stored="true" required="false" multiValued="true" />
+
+    <field name="sysUserId" type="int" indexed="true" stored="true" required="true" multiValued="false" />
+
+    <field name="userName" type="string" indexed="true" stored="true" required="true" multiValued="false" />
+    <field name="age" type="int" indexed="true" stored="true" required="true" multiValued="false" />
+    <field name="school" type="string" indexed="true" stored="true" required="true" multiValued="false" />
+    <!--
+        动态域 dynamicField
+        name:域的名称，该域的名称是通过一个表达式来指定的，只要符合这这个规则，就可以使用这个域。比如  aa_i,bb_i,13_i等等，只要满足这个表达式皆可
+　　    type:对应的值类型，相应的值必须满足这个类型，不然就会报错
+　　    indexed:是否要索引
+        stored:是否要存储
+
+    -->
+    <dynamicField name="*_i"  type="int"    indexed="true"  stored="true"/>
+    <dynamicField name="*_is" type="int"    indexed="true"  stored="true"  multiValued="true"/>
+
+     <!-- 主键域 uniqueKey-->
+    <uniqueKey>sysUserId</uniqueKey>
+
+    <!-- 复制域 copyField
+        source:源域
+        dest:目标域
+        复制域，将源域的内容复制到目标域中，是允许多值的
+    -->
+    <copyField source="sysUserId" dest="searchField"/>
+
+</schema>
